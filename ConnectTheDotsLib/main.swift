@@ -116,11 +116,30 @@ func getPositionFor(squareNumber number: Int) -> Position? {
     if (number > totalSquares) {
         return nil
     }
-    let row: Int8 = Int8(floor(Double(number) / Double(numSides)))
-    let col: Int8 = Int8(number % Int(numSides)) + 1
-    return Position(row: row, col: col)
+    let row: Int8 = Int8(floor(Double(number) / Double(numSides))) + 1
+    let col: Int8 = Int8(number % Int(numSides))
+    return Position(row: col == 0 ? (row - 1) : row, col: col == 0 ? numSides : col)
+}
+
+func getSidesFor(squareNum number: Int) -> [Int] {
+    guard let position = getPositionFor(squareNumber: number) else {
+        return []
+    }
+    return getSidesFor(position: position)
+}
+
+func getSidesFor(position p: Position) -> [Int] {
+    let top = Int(numSides) * Int(p.row-1) + Int(numSideDots) * Int(p.row-1) + Int(p.col)
+    let down = Int(numSides) * Int(p.row) + Int(numSideDots) * Int(p.row) + Int(p.col)
+    let left = top + Int(numSides)
+    let right = left + 1
+    return [top, right, down, left]
 }
 
 for i in 1...totalSides {
     print("\(i) \(getSquaresFor(sideNumber: i))")
+}
+
+for i in 1...totalSquares {
+    print("\(i) \(getSidesFor(squareNum: i))")
 }
