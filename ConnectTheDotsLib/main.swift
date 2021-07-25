@@ -7,32 +7,52 @@
 
 import Foundation
 
+let top = "-"
+let left = "|"
+
+class Square {
+    let number: Int
+    var borders: Int8
+    var owner: Character?
+    
+    init(number: Int, borders: Int8, owner: Character?) {
+        self.number = number
+        self.borders = borders
+        self.owner = owner
+    }
+}
 
 struct Position {
     let row: Int8
     let col: Int8
 }
 
-let numSides: Int8 = 3 //n
+let numSides: Int8 = 5 //n
 let numSideDots: Int8 = numSides + 1 //l
 
 let totalSquares: Int = Int(pow(Double(numSides), 2)) //c
 let totalDots: Int = Int(pow(Double(numSideDots), 2)) //p
 let totalSides: Int = 2 * Int(numSideDots) * Int(numSideDots - 1) //b
 
-let squares: [Character?] = Array(repeating: nil, count: totalSquares);
+let squares: [Square] = {
+    var result: [Square] = []
+    for i in 1...totalSquares {
+        result.append(Square(number: i, borders: 0, owner: nil))
+    }
+    return result
+}();
 
-let sides: [Bool] = Array(repeating: false, count: totalSides);
+var sides: [Bool] = Array(repeating: false, count: totalSides);
 
 let players: [Character] = ["X", "O"]
 
-func getSquaresFor(sideNumber number: Int) -> [Int] {
+func getSquaresFor(sideNumber number: Int) -> [Square] {
     var result: [Int] = []
     
     var v = true
     for _ in 1...2 {
         if let firstPos = getBarePositionFor(sideNumber: number, isVertical: v) {
-            let first = getSquareFor(squarePosition: firstPos)
+            let first = getSquareNumberFor(squarePosition: firstPos)
             if v {
                 if first <= numSides || first > (totalSquares - Int(numSides)) {
                     result.append(first)
@@ -45,7 +65,7 @@ func getSquaresFor(sideNumber number: Int) -> [Int] {
                 let lastCol: Int8 = numSides + 1
                 if firstPos.col == lastCol {
                     let pos = normalizePosition(firstPos, v)
-                    let posNum = getSquareFor(squarePosition: pos)
+                    let posNum = getSquareNumberFor(squarePosition: pos)
                     result.append(posNum)
                 } else if (first-1) % Int(numSides) == 0 {
                     result.append(first)
@@ -61,7 +81,7 @@ func getSquaresFor(sideNumber number: Int) -> [Int] {
         v = !v;
     }
     result.sort()
-    return result
+    return result.map({ squares[$0-1] })
 }
 
 func getPositionFor(sideNumber number: Int,isVertical v: Bool) -> Position? {
@@ -107,7 +127,7 @@ func getBarePositionFor(sideNumber number: Int,isVertical v: Bool) -> Position? 
     return Position(row: Int8(r), col: col)
 }
 
-func getSquareFor(squarePosition pos: Position) -> Int {
+func getSquareNumberFor(squarePosition pos: Position) -> Int {
     let square = Int(pos.row - 1) * Int(numSides) + Int(pos.col);
     return square;
 }
@@ -136,10 +156,80 @@ func getSidesFor(position p: Position) -> [Int] {
     return [top, right, down, left]
 }
 
-for i in 1...totalSides {
-    print("\(i) \(getSquaresFor(sideNumber: i))")
+func drawSide(_ number: Int, _ player: Character) -> Square? {
+    let side = sides[number-1]
+    if (!side) {
+        sides[number-1] = true
+        let boxes = getSquaresFor(sideNumber: number)
+        boxes.forEach({
+            $0.borders += 1
+            if ($0.borders >= 4) {
+                $0.owner = player
+            }
+            print("\($0.number) \($0.borders) \($0.owner)")
+        })
+    }
+    return nil
 }
 
-for i in 1...totalSquares {
-    print("\(i) \(getSidesFor(squareNum: i))")
+func printBoard() -> String {
+    var board: String = ""
+    var start: Int = 1
+    for i in 1...(numSides*2+1) {
+        var row: String = ""
+        let isV = i % 2 == 1
+        let end = start + Int(numSides)
+        for b in start..<end {
+            let side = sides[b - 1]
+            if (isV) {
+                row.append(".")
+                if (side) {
+                    row.append(top)
+                } else {
+                    row.append(" ")
+                }
+            } else {
+                let box: Square = getSquaresFor(sideNumber: b).last!
+                if (side) {
+                    row.append(left)
+                } else {
+                    row.append(" ")
+                }
+                if (box.owner != nil) {
+                    row.append(String(describing: box.owner!))
+                } else {
+                    row.append(" ")
+                }
+            }
+        }
+        if (isV) {
+            row.append(".")
+        } else {
+            let side = sides[end-1]
+            if (side) {
+                row.append(left)
+            } else {
+                row.append(" ")
+            }
+        }
+        print(row)
+        board.append(row)
+        board.append("\n")
+        start = end + Int(isV ? 0 : 1)
+    }
+    return board
 }
+
+//for i in 1...totalSides {
+//    print("\(i) \(getSquaresFor(sideNumber: i))")
+//}
+//
+//for i in 1...totalSquares {
+//    print("\(i) \(getSidesFor(squareNum: i))")
+//}
+drawSide(1, "X")
+drawSide(6, "X")
+drawSide(7, "X")
+drawSide(12, "X")
+drawSide(11, "X")
+printBoard()
