@@ -7,6 +7,12 @@
 
 import Foundation
 
+
+struct Position {
+    let row: Int8
+    let col: Int8
+}
+
 let numSides: Int8 = 5 //n
 
 let numSideDots = 5 + 1 //l
@@ -26,7 +32,8 @@ func getSquaresFor(sideNumber number: Int) -> [Int] {
     
     var v = true
     for _ in 1...2 {
-        if let first = getSquareFor(sideNumber: number, isVertical: v) {
+        if let firstPos = getPositionFor(sideNumber: number, isVertical: v) {
+            let first = getSquareFor(squarePosition: firstPos)
             if v {
                 if first <= numSides || first > (totalSquares - Int(numSides)) {
                     result.append(first)
@@ -53,38 +60,58 @@ func getSquaresFor(sideNumber number: Int) -> [Int] {
     return result
 }
 
-func getSquareFor(sideNumber number: Int,isVertical v: Bool) -> Int? {
+func getPositionFor(sideNumber number: Int,isVertical v: Bool) -> Position? {
     
     if (v) {
         let lastBorderRowStart = totalSides - Int(numSides) + 1;
         if (number >= lastBorderRowStart) {
-            return totalSquares - (totalSides - number)
+            return Position(row: numSides, col: Int8(totalSquares - (totalSides - number)))
         }
         if (number <= numSides) {
-            return number
+            return Position(row: 1, col: Int8(number))
         }
     }
     
+    // can be optimised
     let den: Int = Int(2 * numSides + 1);
     let z = Int(v ? 0 : numSides)
-    let firstCol: Int8 = max(Int8(den - number + z), 1)
+    var col: Int8 = 0
     let lastCol: Int8 = numSides + (v ? 0 : 1)
+    var m: Int = Int(round(Double((number - z) / den)) - 1)
     
-    // possibly not needed
-    for o in firstCol...lastCol {
-        let nom: Int = number - Int(o) - z;
-        if nom % den == 0 {
-            let r = nom / den + 1;
-            var col = o
-            if (!v && o == lastCol) {
-                col -= 1
-            }
-            let square = (r - 1) * Int(numSides) + Int(col);
-            return square;
+    while col <= 0 || col > lastCol {
+        m += 1
+        print("\(number) \(z) \(m) \(den)")
+        col = Int8(number - z - m*den)
+        if (m >= numSides) {
+            return nil
         }
+    }
+    
+    let nom: Int = number - Int(col) - z;
+    if nom % den == 0 {
+        let r = nom / den + 1;
+        if (!v && col == lastCol) {
+            col -= 1
+        }
+        return Position(row: Int8(r), col: col)
     }
     
     return nil
+}
+
+func getSquareFor(squarePosition pos: Position) -> Int {
+    let square = Int(pos.row - 1) * Int(numSides) + Int(pos.col);
+    return square;
+}
+
+func getPositionFor(squareNumber number: Int) -> Position? {
+    if (number > totalSquares) {
+        return nil
+    }
+    let row: Int8 = Int8(floor(Double(number) / Double(numSides)))
+    let col: Int8 = Int8(number % Int(numSides)) + 1
+    return Position(row: row, col: col)
 }
 
 print(getSquaresFor(sideNumber: 53))
