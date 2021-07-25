@@ -32,7 +32,7 @@ func getSquaresFor(sideNumber number: Int) -> [Int] {
     
     var v = true
     for _ in 1...2 {
-        if let firstPos = getPositionFor(sideNumber: number, isVertical: v) {
+        if let firstPos = getBarePositionFor(sideNumber: number, isVertical: v) {
             let first = getSquareFor(squarePosition: firstPos)
             if v {
                 if first <= numSides || first > (totalSquares - Int(numSides)) {
@@ -43,7 +43,12 @@ func getSquaresFor(sideNumber number: Int) -> [Int] {
                     result.append(second)
                 }
             } else {
-                if (first-1) % Int(numSides) == 0 || first % Int(numSides) == 0 {
+                let lastCol: Int8 = numSides + 1
+                if firstPos.col == lastCol {
+                    let pos = normalizePosition(firstPos, v)
+                    let posNum = getSquareFor(squarePosition: pos)
+                    result.append(posNum)
+                } else if (first-1) % Int(numSides) == 0 {
                     result.append(first)
                 } else {
                     // two squares
@@ -61,6 +66,22 @@ func getSquaresFor(sideNumber number: Int) -> [Int] {
 }
 
 func getPositionFor(sideNumber number: Int,isVertical v: Bool) -> Position? {
+    guard let position = getBarePositionFor(sideNumber: number, isVertical: v) else {
+        return nil
+    }
+    return normalizePosition(position, v)
+}
+
+func normalizePosition(_ position: Position,_ vertical: Bool) -> Position {
+    let lastCol: Int8 = numSides + (vertical ? 0 : 1)
+    var col = position.col
+    if (!vertical && col == lastCol) {
+        col -= 1
+    }
+    return Position(row: position.row, col: col)
+}
+
+func getBarePositionFor(sideNumber number: Int,isVertical v: Bool) -> Position? {
     
     if (v) {
         let lastBorderRowStart = totalSides - Int(numSides) + 1;
@@ -72,32 +93,19 @@ func getPositionFor(sideNumber number: Int,isVertical v: Bool) -> Position? {
         }
     }
     
+    let lastCol: Int8 = numSides + (v ? 0 : 1)
+    
     // can be optimised
     let den: Int = Int(2 * numSides + 1);
     let z = Int(v ? 0 : numSides)
-    var col: Int8 = 0
-    let lastCol: Int8 = numSides + (v ? 0 : 1)
-    var m: Int = Int(round(Double((number - z) / den)) - 1)
-    
-    while col <= 0 || col > lastCol {
-        m += 1
-        print("\(number) \(z) \(m) \(den)")
-        col = Int8(number - z - m*den)
-        if (m >= numSides) {
-            return nil
-        }
+    let m: Int = Int(round(Double((number - z) / den)))
+    let col: Int8 = Int8(number - z - m*den)
+    print("\(number) \(z) \(m) \(den) \(col)")
+    if (m >= numSides || col > lastCol || col <= 0) {
+        return nil
     }
-    
-    let nom: Int = number - Int(col) - z;
-    if nom % den == 0 {
-        let r = nom / den + 1;
-        if (!v && col == lastCol) {
-            col -= 1
-        }
-        return Position(row: Int8(r), col: col)
-    }
-    
-    return nil
+    let r = m + 1;
+    return Position(row: Int8(r), col: col)
 }
 
 func getSquareFor(squarePosition pos: Position) -> Int {
@@ -114,4 +122,4 @@ func getPositionFor(squareNumber number: Int) -> Position? {
     return Position(row: row, col: col)
 }
 
-print(getSquaresFor(sideNumber: 53))
+print(getSquaresFor(sideNumber: 13))
