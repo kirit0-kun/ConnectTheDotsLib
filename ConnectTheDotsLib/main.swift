@@ -13,13 +13,12 @@ struct Position {
     let col: Int8
 }
 
-let numSides: Int8 = 5 //n
+let numSides: Int8 = 3 //n
+let numSideDots: Int8 = numSides + 1 //l
 
-let numSideDots = 5 + 1 //l
 let totalSquares: Int = Int(pow(Double(numSides), 2)) //c
-
-let totalDots = pow(Double(numSideDots), 2) //p
-let totalSides = 2 * numSideDots * (numSideDots - 1) //b
+let totalDots: Int = Int(pow(Double(numSideDots), 2)) //p
+let totalSides: Int = 2 * Int(numSideDots) * Int(numSideDots - 1) //b
 
 let squares: [Character?] = Array(repeating: nil, count: totalSquares);
 
@@ -86,7 +85,7 @@ func getBarePositionFor(sideNumber number: Int,isVertical v: Bool) -> Position? 
     if (v) {
         let lastBorderRowStart = totalSides - Int(numSides) + 1;
         if (number >= lastBorderRowStart) {
-            return Position(row: numSides, col: Int8(totalSquares - (totalSides - number)))
+            return Position(row: numSides, col: Int8(numSides - Int8(totalSides - number)))
         }
         if (number <= numSides) {
             return Position(row: 1, col: Int8(number))
@@ -100,7 +99,7 @@ func getBarePositionFor(sideNumber number: Int,isVertical v: Bool) -> Position? 
     let z = Int(v ? 0 : numSides)
     let m: Int = Int(round(Double((number - z) / den)))
     let col: Int8 = Int8(number - z - m*den)
-    print("\(number) \(z) \(m) \(den) \(col)")
+    //print("\(number) \(z) \(m) \(den) \(col)")
     if (m >= numSides || col > lastCol || col <= 0) {
         return nil
     }
@@ -122,4 +121,6 @@ func getPositionFor(squareNumber number: Int) -> Position? {
     return Position(row: row, col: col)
 }
 
-print(getSquaresFor(sideNumber: 13))
+for i in 1...totalSides {
+    print("\(i) \(getSquaresFor(sideNumber: i))")
+}
